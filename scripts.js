@@ -418,7 +418,7 @@ function giveReward(wheelContainer, wheel) {
 
       try {
         const response = await fetch(
-          "https://script.google.com/macros/s/AKfycbw7fidI3Tk5wsMtLsA78o9bw0RY8m8a4Jvuk9EN6gZPE8PtpqsVsm3XFBHhuwUkNMMO/exec",
+          "https://script.google.com/macros/s/AKfycbyqBRBzJ1Kfqlg8Sz9oOwuk9nlbF9cIweb4L-PskEW1FKUA_UCvjDE1SERTNXeTt-vv/exec ",
           { method: "POST", body: formData }
         );
 
