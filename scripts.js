@@ -228,12 +228,11 @@ function askForEmail(providedName) {
 function checkExistingReward(providedEmail) {
   sessionStorage.setItem("userEmail", providedEmail);
 
-  let claimed = localStorage.getItem("userReward");
+  let projectName = "greenChilli"; // Use your actual project name
+  let claimed = localStorage.getItem(projectName + "_userReward");
+
   if (claimed) {
-    addMessage(
-      "It looks like you've already claimed a reward previously!",
-      "bot"
-    );
+    addMessage("It looks like you've already claimed a reward previously!", "bot");
     addMessage("Your reward was: " + claimed, "bot");
     addMessage("Thank you for visiting again!", "bot");
     return;
@@ -242,6 +241,13 @@ function checkExistingReward(providedEmail) {
   // Otherwise, move on to the review step
   askReviewPlatform();
 }
+
+// Function to store the reward (Ensure you're saving it correctly)
+function storeReward(reward) {
+  let projectName = "greenChilli"; // Ensure this matches checkExistingReward
+  localStorage.setItem(projectName + "_userReward", reward);
+}
+
 
 /**
  * Ask user which platform they'd like to leave the review on
