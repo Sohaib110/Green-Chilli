@@ -96,7 +96,14 @@ function enableUserInput(nextStep, type = "text") {
 
   sendButton.onclick = function () {
     let inputText = userInput.value.trim();
+
     if (inputText) {
+      // Email validation
+      if (type === "email" && !validateEmail(inputText)) {
+        addMessage("Invalid email address. Please enter a valid email.", "bot");
+        return;
+      }
+
       if (type === "name") {
         name = inputText;
       } else if (type === "email") {
@@ -111,6 +118,12 @@ function enableUserInput(nextStep, type = "text") {
       if (nextStep) nextStep(inputText);
     }
   };
+}
+
+// Email validation function
+function validateEmail(email) {
+  let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailPattern.test(email);
 }
 
 /**
