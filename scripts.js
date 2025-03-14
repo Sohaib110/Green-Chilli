@@ -241,19 +241,28 @@ function askForEmail(providedName) {
 function checkExistingReward(providedEmail) {
   sessionStorage.setItem("userEmail", providedEmail);
 
-  let projectName = "greenChilli"; // Use your actual project name
-  let claimed = localStorage.getItem(projectName + "_userReward");
+  let projectName = "greenChilli"; // Unique project name
+  let normalizedEmail = providedEmail.trim().toLowerCase(); // Normalize email
+  let currentTime = Date.now(); // Get current time in milliseconds
+  let thirtyDays = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
 
-  if (claimed) {
-    addMessage("It looks like you've already claimed a reward previously!", "bot");
-    addMessage("Your reward was: " + claimed, "bot");
-    addMessage("Thank you for visiting again!", "bot");
-    return;
+  let claimedData = JSON.parse(localStorage.getItem(projectName + "_claimedData")) || {};
+
+  if (claimedData[normalizedEmail]) {
+    let lastClaimTime = claimedData[normalizedEmail];
+
+    if (currentTime - lastClaimTime < thirtyDays) {
+      let remainingDays = Math.ceil((thirtyDays - (currentTime - lastClaimTime)) / (1000 * 60 * 60 * 24));
+      addMessage(`It looks like you've already claimed a reward previously!`, "bot");
+      addMessage(`You can claim again in ${remainingDays} days.`, "bot");
+      return;
+    }
   }
 
-  // Otherwise, move on to the review step
+  // If eligible, proceed to review step
   askReviewPlatform();
 }
+
 
 // Function to store the reward (Ensure you're saving it correctly)
 function storeReward(reward) {
