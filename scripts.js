@@ -11,8 +11,8 @@ document.addEventListener("DOMContentLoaded", function () {
     startButton.addEventListener("click", startChat);
   }
 
-  // If there's a saved chat state in sessionStorage, restore it
-  if (sessionStorage.getItem("chatState")) {
+  // If there's a saved chat state in localStorage, restore it
+  if (localStorage.getItem("chatState")) {
     restoreChat();
   }
 });
@@ -21,18 +21,18 @@ let chatStarted = false;
 let chatHistory = [];
 
 /**
- * Saves the current chat state to sessionStorage so
+ * Saves the current chat state to localStorage so
  * refreshing won't lose our conversation.
  */
 function saveChatState() {
-  sessionStorage.setItem("chatState", JSON.stringify(chatHistory));
+  localStorage.setItem("chatState", JSON.stringify(chatHistory));
 }
 
 /**
- * Restores chat state from sessionStorage, if it exists
+ * Restores chat state from localStorage, if it exists
  */
 function restoreChat() {
-  let savedChat = sessionStorage.getItem("chatState");
+  let savedChat = localStorage.getItem("chatState");
   if (savedChat) {
     chatHistory = JSON.parse(savedChat);
     chatHistory.forEach((entry) => {
@@ -225,7 +225,7 @@ function goBack() {
  * After capturing user's name, we ask for the email
  */
 function askForEmail(providedName) {
-  sessionStorage.setItem("userName", providedName);
+  localStorage.setItem("userName", providedName);
   askQuestion(
     "Please enter your Email Address:",
     [],
@@ -239,28 +239,85 @@ function askForEmail(providedName) {
  * If yes, skip the review flow. If no, proceed to ask "Google or Facebook".
  */
 function checkExistingReward(providedEmail) {
-  sessionStorage.setItem("userEmail", providedEmail);
+  let projectName = "bengal";
+  let normalizedEmail = providedEmail.trim().toLowerCase();
 
-  let projectName = "greenChilli"; // Unique project name
-  let normalizedEmail = providedEmail.trim().toLowerCase(); // Normalize email
-  let currentTime = Date.now(); // Get current time in milliseconds
-  let thirtyDays = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+  // Store the email in localStorage for later use
+  localStorage.setItem("userEmail", normalizedEmail);
 
-  let claimedData = JSON.parse(localStorage.getItem(projectName + "_claimedData")) || {};
+  // Clear corrupted data if exists
+  if (typeof localStorage.getItem(projectName + "_claimedData") === "object") {
+    localStorage.removeItem(projectName + "_claimedData");
+  }
 
+  // Safe JSON parsing
+  let claimedData = {};
+  try {
+    claimedData = JSON.parse(
+      localStorage.getItem(projectName + "_claimedData") || "{}"
+    );
+  } catch (e) {
+    console.error("Error parsing claim data:", e);
+    localStorage.removeItem(projectName + "_claimedData");
+    claimedData = {};
+  }
+
+  // Check if this email has claimed a reward within the last 30 days
   if (claimedData[normalizedEmail]) {
     let lastClaimTime = claimedData[normalizedEmail];
+    let currentTime = Date.now();
+    let thirtyDays = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
 
     if (currentTime - lastClaimTime < thirtyDays) {
-      let remainingDays = Math.ceil((thirtyDays - (currentTime - lastClaimTime)) / (1000 * 60 * 60 * 24));
-      addMessage(`It looks like you've already claimed a reward previously!`, "bot");
-      addMessage(`You can claim again in ${remainingDays} days.`, "bot");
-      return;
+      // Calculate remaining days
+      let remainingDays = Math.ceil(
+        (thirtyDays - (currentTime - lastClaimTime)) / (1000 * 60 * 60 * 24)
+      );
+
+      // Show message about waiting and stop the flow
+      addMessage(
+        `⏳ You have already claimed a reward. Please try again in ${remainingDays} days.`,
+        "bot"
+      );
+
+      // Hide input elements
+      document.getElementById("user-input").style.display = "none";
+      document.getElementById("send-button").style.display = "none";
+
+      return; // Stop the flow here
     }
   }
 
-  // If eligible, proceed to review step
+  // If valid (either never claimed or claimed more than 30 days ago), proceed to review platform selection
   askReviewPlatform();
+}
+function claimReward() {
+  let projectName = "bengal";
+  let normalizedEmail = localStorage.getItem("userEmail").trim().toLowerCase();
+  let currentTime = Date.now();
+
+  // Get existing data or create empty object
+  let claimedData = {};
+  try {
+    claimedData = JSON.parse(
+      localStorage.getItem(projectName + "_claimedData") || "{}"
+    );
+  } catch (e) {
+    console.error("Error parsing claim data:", e);
+    claimedData = {};
+  }
+
+  // Update claim time with current timestamp
+  claimedData[normalizedEmail] = currentTime;
+
+  // Save back to localStorage
+  localStorage.setItem(
+    projectName + "_claimedData",
+    JSON.stringify(claimedData)
+  );
+
+  // Continue with reward process
+  addMessage("🎉 Congratulations! You've claimed your reward!", "bot");
 }
 
 
@@ -289,7 +346,7 @@ function askReviewPlatform() {
  * Open the chosen platform in a new tab, then prompt user to upload screenshot
  */
 function handleReviewPlatform(platform) {
-  sessionStorage.setItem("reviewPlatform", platform);
+  localStorage.setItem("reviewPlatform", platform);
   saveChatState();
 
   if (platform === "google") {
@@ -459,6 +516,7 @@ function giveReward(wheelContainer, wheel) {
       }
     };
   }
+  claimReward(email);
 
   // Done updating the chat
   saveChatState();
