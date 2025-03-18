@@ -239,7 +239,7 @@ function askForEmail(providedName) {
  * If yes, skip the review flow. If no, proceed to ask "Google or Facebook".
  */
 function checkExistingReward(providedEmail) {
-  let projectName = "bengal";
+  let projectName = "chilli";
   let normalizedEmail = providedEmail.trim().toLowerCase();
 
   // Store the email in localStorage for later use
