@@ -478,7 +478,7 @@ function giveReward(wheelContainer, wheel) {
   let voucherMsg = document.createElement("div");
   voucherMsg.classList.add("voucher-message");
   voucherMsg.textContent =
-    "Your review will be validated, and your voucher will be emailed to you within 12 hours.";
+    "";
   wheelContainer.appendChild(voucherMsg);
 
   // Save to localStorage so user doesn't get multiple rewards
